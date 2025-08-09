@@ -15,7 +15,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const rooms = {};
 
 wss.on('connection', (ws) => {
-  ws.id = uuidv4();
+  ws.id = String(uuidv4()).slice(0, 5);
 
   ws.on('message', (msg) => {
     // All messages are JSON control messages
@@ -26,7 +26,7 @@ wss.on('connection', (ws) => {
 
     // Create a room (host)
     if (type === 'create-room') {
-      const roomId = uuidv4();
+      const roomId = String(uuidv4()).slice(0, 5);
       rooms[roomId] = { host: ws, viewers: {} };
       ws.role = 'host';
       ws.roomId = roomId;
@@ -108,7 +108,7 @@ wss.on('connection', (ws) => {
     if (ws.role === 'host') {
       // notify and close viewers
       Object.values(room.viewers).forEach(v => {
-        try { v.send(JSON.stringify({ type: 'host-left' })); v.close(); } catch(e){ }
+        try { v.send(JSON.stringify({ type: 'host-left' })); v.close(); } catch (e) { }
       });
       delete rooms[ws.roomId];
     } else if (ws.role === 'viewer') {
