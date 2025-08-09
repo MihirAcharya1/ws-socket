@@ -67,7 +67,11 @@ async function startSharing() {
     // Request high-quality capture. Browsers decide what they can provide.
     localStream = await navigator.mediaDevices.getDisplayMedia({
       video: { frameRate: { ideal: 60, max: 60 }, width: { ideal: 1920 }, height: { ideal: 1080 } },
-      audio: false
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        sampleRate: 44100
+      }
     });
 
     // create room
@@ -162,6 +166,11 @@ async function createOfferForViewer(viewerId) {
   // add the screen track(s) to the connection
   const videoTrack = localStream.getVideoTracks()[0];
   const sender = pc.addTrack(videoTrack, localStream);
+
+  const audioTracks = localStream.getAudioTracks();
+  if (audioTracks?.length > 0) {
+    pc.addTrack(audioTracks[0], localStream);
+  }
 
   // create offer
   const offer = await pc.createOffer();
