@@ -6,7 +6,7 @@ const txtRoom = document.getElementById('txtRoom');
 const txtStatus = document.getElementById('txtStatus');
 const viewersList = document.getElementById('viewersList');
 
-const ws = new WebSocket(`ws://${location.host}`);
+const ws = new WebSocket(`wss://${location.host}`);
 ws.onopen = () => console.log('Signaling WS open (host)');
 ws.onmessage = onSignalMessage;
 

@@ -4,7 +4,7 @@ const btnJoin = document.getElementById('btnJoin');
 const txtViewerStatus = document.getElementById('txtViewerStatus');
 const videoEl = document.getElementById('videoEl');
 
-const ws = new WebSocket(`ws://${location.host}`);
+const ws = new WebSocket(`wss://${location.host}`);
 ws.onopen = () => console.log('Signaling WS open (viewer)');
 ws.onmessage = onSignalMessage;
 
