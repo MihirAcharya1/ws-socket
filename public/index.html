@@ -17,6 +17,7 @@
 </html> -->
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <title>Host - WebRTC Screen Share</title>
@@ -24,26 +25,40 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 0; padding: 0;
-      display: flex; flex-direction: column; align-items: center;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       background: linear-gradient(135deg, #1e3c72, #2a5298);
       color: white;
       min-height: 100vh;
     }
+
     h1 {
       margin-top: 20px;
       font-size: 2rem;
     }
+
     .container {
       max-width: 500px;
       width: 90%;
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
       text-align: center;
       margin-top: 20px;
     }
+
+    a {
+      border: 1px solid #FFFFFF;
+      border-radius: 5px;
+      padding: 10px 20px;
+      background: #ffffff;
+      color: #1e3c72;
+    }
+
     button {
       padding: 10px 20px;
       font-size: 1rem;
@@ -55,35 +70,44 @@
       color: white;
       transition: background 0.3s;
     }
+
     button:hover {
       background: #45a049;
     }
+
     #btnCopyRoom {
       background: #2196F3;
     }
+
     #btnCopyRoom:hover {
       background: #1976D2;
     }
-    #txtRoom, #txtStatus {
+
+    #txtRoom,
+    #txtStatus {
       margin: 10px 0;
       word-break: break-all;
     }
+
     #viewersList {
       margin-top: 20px;
       text-align: left;
     }
+
     .viewer-item {
       padding: 5px;
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, 0.2);
       margin-bottom: 5px;
       border-radius: 4px;
     }
   </style>
 </head>
+
 <body>
   <h1>Host Screen Share</h1>
   <div class="container">
     <button id="btnStartShare">Start Sharing</button>
+    <a href="/viewer">View Screen</a>
     <p id="txtRoom">Room: (none)</p>
     <button id="btnCopyRoom" style="display:none">Copy Room Link</button>
     <p id="txtStatus">Status: idle</p>
@@ -92,5 +116,5 @@
 
   <script src="host.js"></script>
 </body>
-</html>
 
+</html>
