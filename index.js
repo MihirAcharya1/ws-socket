@@ -1,3 +1,4 @@
+// index.js
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
@@ -8,44 +9,96 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-const rooms = {};
-
 app.use(express.static(path.join(__dirname, 'public')));
+
+// rooms: roomId -> { host: ws, viewers: { viewerId: ws } }
+const rooms = {};
 
 wss.on('connection', (ws) => {
   ws.id = uuidv4();
 
-  ws.on('message', (message) => {
-    const data = JSON.parse(message);
-    const { type } = data;
+  ws.on('message', (msg) => {
+    // All messages are JSON control messages
+    let data;
+    try { data = JSON.parse(msg.toString()); } catch (e) { return; }
 
+    const type = data.type;
+
+    // Create a room (host)
     if (type === 'create-room') {
       const roomId = uuidv4();
-      rooms[roomId] = { host: ws, viewers: [] };
-      ws.roomId = roomId;
+      rooms[roomId] = { host: ws, viewers: {} };
       ws.role = 'host';
+      ws.roomId = roomId;
       ws.send(JSON.stringify({ type: 'room-created', roomId }));
+      return;
     }
 
+    // Viewer joins a room
     if (type === 'join-room') {
       const { roomId } = data;
-      if (!rooms[roomId]) {
-        return ws.send(JSON.stringify({ type: 'error', message: 'Room not found' }));
-      }
-      rooms[roomId].viewers.push(ws);
-      ws.roomId = roomId;
+      const room = rooms[roomId];
+      if (!room) return ws.send(JSON.stringify({ type: 'error', message: 'Room not found' }));
+      const viewerId = uuidv4();
+      room.viewers[viewerId] = ws;
       ws.role = 'viewer';
-      ws.send(JSON.stringify({ type: 'joined-room', roomId }));
+      ws.roomId = roomId;
+      ws.viewerId = viewerId;
+
+      // notify host
+      if (room.host && room.host.readyState === WebSocket.OPEN) {
+        room.host.send(JSON.stringify({ type: 'viewer-joined', viewerId }));
+      }
+      ws.send(JSON.stringify({ type: 'joined-room', roomId, viewerId }));
+      return;
     }
 
-    if (type === 'screen-data' && ws.role === 'host') {
+    // Host -> viewer: offer SDP
+    if (type === 'offer') {
+      const { viewerId, sdp } = data;
       const room = rooms[ws.roomId];
       if (!room) return;
-      room.viewers.forEach(viewer => {
-        if (viewer.readyState === WebSocket.OPEN) {
-          viewer.send(JSON.stringify({ type: 'screen-data', data: data.data }));
-        }
-      });
+      const viewer = room.viewers[viewerId];
+      if (viewer && viewer.readyState === WebSocket.OPEN) {
+        viewer.send(JSON.stringify({ type: 'offer', sdp, viewerId }));
+      }
+      return;
+    }
+
+    // Viewer -> host: answer SDP
+    if (type === 'answer') {
+      const { sdp, viewerId } = data;
+      const room = rooms[ws.roomId];
+      if (!room) return;
+      const host = room.host;
+      if (host && host.readyState === WebSocket.OPEN) {
+        host.send(JSON.stringify({ type: 'answer', sdp, viewerId }));
+      }
+      return;
+    }
+
+    // ICE candidate relay
+    if (type === 'ice-candidate') {
+      const { target, candidate, viewerId } = data;
+      const room = rooms[ws.roomId];
+      if (!room) return;
+      if (target === 'host') {
+        const host = room.host;
+        if (host && host.readyState === WebSocket.OPEN) host.send(JSON.stringify({ type: 'ice-candidate', candidate, from: ws.id, viewerId }));
+      } else if (target === 'viewer') {
+        const viewer = room.viewers[viewerId];
+        if (viewer && viewer.readyState === WebSocket.OPEN) viewer.send(JSON.stringify({ type: 'ice-candidate', candidate, from: ws.id }));
+      }
+      return;
+    }
+
+    // optional: viewer leave
+    if (type === 'viewer-leave') {
+      const { viewerId } = data;
+      const room = rooms[ws.roomId];
+      if (!room) return;
+      delete room.viewers[viewerId];
+      return;
     }
   });
 
@@ -53,14 +106,21 @@ wss.on('connection', (ws) => {
     const room = rooms[ws.roomId];
     if (!room) return;
     if (ws.role === 'host') {
-      room.viewers.forEach(v => v.close());
+      // notify and close viewers
+      Object.values(room.viewers).forEach(v => {
+        try { v.send(JSON.stringify({ type: 'host-left' })); v.close(); } catch(e){ }
+      });
       delete rooms[ws.roomId];
     } else if (ws.role === 'viewer') {
-      room.viewers = room.viewers.filter(v => v !== ws);
+      // remove viewer from room
+      if (ws.viewerId && room.viewers[ws.viewerId]) delete room.viewers[ws.viewerId];
+      // notify host so it can close pc
+      if (room.host && room.host.readyState === WebSocket.OPEN) {
+        room.host.send(JSON.stringify({ type: 'viewer-left', viewerId: ws.viewerId }));
+      }
     }
   });
 });
 
-server.listen(3000, () => {
-  console.log('Server running at http://localhost:3000');
-});
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`Signaling server listening on http://localhost:${PORT}`));

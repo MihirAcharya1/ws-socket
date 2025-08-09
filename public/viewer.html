@@ -1,12 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head><title>Viewer</title></head>
+<head>
+  <meta charset="utf-8" />
+  <title>Viewer - WebRTC Screen Share</title>
+</head>
 <body>
-  <h1>Join Room</h1>
-  <input id="room" placeholder="Room ID" />
-  <button id="join">Join</button>
-  <br /><br />
-  <img id="screen" width="800" />
+  <h1>Viewer</h1>
+  <input id="inputRoomId" placeholder="Room ID" />
+  <button id="btnJoin">Join Room</button>
+  <p id="txtViewerStatus">Status: idle</p>
+  <video id="videoEl" controls autoplay playsinline style="width:90%;max-width:1280px;"></video>
+
   <script src="viewer.js"></script>
 </body>
 </html>

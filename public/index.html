@@ -1,10 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head><title>Host</title></head>
+<head>
+  <meta charset="utf-8" />
+  <title>Host - WebRTC Screen Share</title>
+</head>
 <body>
-  <h1>Host Screen</h1>
-  <button id="start">Start Sharing</button>
-  <p id="roomId"></p>
+  <h1>Host</h1>
+  <button id="btnStartShare">Start Sharing</button>
+  <p id="txtRoom">Room: (none)</p>
+  <p id="txtStatus">Status: idle</p>
+  <div id="viewersList"></div>
+
   <script src="host.js"></script>
 </body>
 </html>
