@@ -5,8 +5,10 @@ const btnStartShare = document.getElementById('btnStartShare');
 const txtRoom = document.getElementById('txtRoom');
 const txtStatus = document.getElementById('txtStatus');
 const viewersList = document.getElementById('viewersList');
+const btnCopyRoom = document.getElementById('btnCopyRoom');
 
-const ws = new WebSocket(`wss://${location.host}`);
+const WEBURL = location.host.includes('localhost') ? `ws://${location.host}` : `wss://${location.host}`;
+const ws = new WebSocket(WEBURL);
 ws.onopen = () => console.log('Signaling WS open (host)');
 ws.onmessage = onSignalMessage;
 
@@ -14,6 +16,51 @@ let roomId = null;
 let localStream = null;
 // map viewerId -> RTCPeerConnection and sender
 const pcs = {}; // { viewerId: { pc, sender } }
+
+async function copyToClipboard(text) {
+  // Try modern API first
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return { ok: true };
+    } catch (err) {
+      // if it fails, fall through to fallback
+      console.warn('clipboard.writeText failed, falling back', err);
+    }
+  }
+
+  // Fallback for older browsers
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    // avoid viewport scroll
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const successful = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return { ok: successful };
+  } catch (err) {
+    console.error('Fallback copy failed', err);
+    return { ok: false, error: err };
+  }
+}
+
+
+btnCopyRoom.addEventListener('click', async () => {
+  // extract the room id text (after "Room: ")
+  const full = txtRoom.innerText || '';
+  const roomId = full.replace(/^Room:\s*/, '').trim();
+  const res = await copyToClipboard(`${location.href}viewer?id=${roomId}`);
+  if (res.ok) {
+    btnCopyRoom.innerText = 'Copied!';
+    setTimeout(() => btnCopyRoom.innerText = 'Copy Room Link', 1500);
+  } else {
+    alert('Copy failed — please select and copy manually.');
+  }
+});
 
 async function startSharing() {
   try {
@@ -53,6 +100,7 @@ async function onSignalMessage(evt) {
   if (data.type === 'room-created') {
     roomId = data.roomId;
     txtRoom.innerText = `Room: ${roomId}`;
+    btnCopyRoom.style.display = 'inline-block';
     txtStatus.innerText = 'Status: ready for viewers';
     return;
   }
@@ -153,7 +201,7 @@ async function createOfferForViewer(viewerId) {
 function closeViewer(viewerId) {
   const entry = pcs[viewerId];
   if (!entry) return;
-  try { entry.pc.close(); } catch (e) {}
+  try { entry.pc.close(); } catch (e) { }
   delete pcs[viewerId];
   const el = document.getElementById(`viewer-${viewerId}`);
   if (el) el.remove();

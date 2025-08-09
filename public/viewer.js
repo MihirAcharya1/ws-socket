@@ -3,14 +3,24 @@ const inputRoomId = document.getElementById('inputRoomId');
 const btnJoin = document.getElementById('btnJoin');
 const txtViewerStatus = document.getElementById('txtViewerStatus');
 const videoEl = document.getElementById('videoEl');
-
-const ws = new WebSocket(`wss://${location.host}`);
+const WEBURL = location.host.includes('localhost') ? `ws://${location.host}` : `wss://${location.host}`;
+const params = new URLSearchParams(window.location.search);
+const roomIdSearch = params.get('id'); // "12345"=
+console.log('Room ID from search:', roomIdSearch);
+const ws = new WebSocket(WEBURL);
 ws.onopen = () => console.log('Signaling WS open (viewer)');
 ws.onmessage = onSignalMessage;
 
 let pc = null;
 let viewerId = null;
-let roomId = null;
+let roomId = roomIdSearch || null;
+
+if(roomIdSearch){
+  inputRoomId.value = roomIdSearch;
+  // setTimeout(() => {
+  //   btnJoin.click();
+  // }, 3000);
+}
 
 btnJoin.onclick = () => {
   roomId = inputRoomId.value.trim();

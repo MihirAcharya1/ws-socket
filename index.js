@@ -6,16 +6,25 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get("/viewer", (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/viewer.html'));
+});
+
+
+
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-app.use(express.static(path.join(__dirname, 'public')));
+
 
 // rooms: roomId -> { host: ws, viewers: { viewerId: ws } }
 const rooms = {};
 
 wss.on('connection', (ws) => {
-  ws.id = String(uuidv4()).slice(0, 5);
+  ws.id = String(uuidv4()).slice(0, 6).toUpperCase();
 
   ws.on('message', (msg) => {
     // All messages are JSON control messages
@@ -26,7 +35,7 @@ wss.on('connection', (ws) => {
 
     // Create a room (host)
     if (type === 'create-room') {
-      const roomId = String(uuidv4()).slice(0, 5);
+      const roomId = String(uuidv4()).slice(0, 6).toUpperCase();
       rooms[roomId] = { host: ws, viewers: {} };
       ws.role = 'host';
       ws.roomId = roomId;
