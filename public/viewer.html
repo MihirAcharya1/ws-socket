@@ -1,15 +1,80 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <title>Viewer - WebRTC Screen Share</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      display: flex; flex-direction: column; align-items: center;
+      background: linear-gradient(135deg, #42275a, #734b6d);
+      color: white;
+      min-height: 100vh;
+    }
+    h1 {
+      margin-top: 20px;
+      font-size: 2rem;
+    }
+    .container {
+      max-width: 600px;
+      width: 95%;
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      text-align: center;
+      margin-top: 20px;
+    }
+    input {
+      padding: 10px;
+      width: 80%;
+      max-width: 300px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      margin: 10px 5px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #FF9800;
+      color: white;
+      transition: background 0.3s;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    button:hover {
+      background: #e68a00;
+    }
+    #txtViewerStatus {
+      margin: 10px 0;
+    }
+    video {
+      width: 100%;
+      max-width: 100%;
+      margin-top: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      background: black;
+    }
+  </style>
 </head>
 <body>
   <h1>Viewer</h1>
-  <input id="inputRoomId" placeholder="Room ID" />
-  <button id="btnJoin">Join Room</button>
-  <p id="txtViewerStatus">Status: idle</p>
-  <video id="videoEl" controls autoplay playsinline style="width:90%;max-width:1280px;"></video>
+  <div class="container">
+    <input id="inputRoomId" placeholder="Room ID" />
+    <button id="btnJoin">Join Room</button>
+    <p id="txtViewerStatus">Status: idle</p>
+    <video id="videoEl" controls autoplay playsinline></video>
+  </div>
 
   <script src="viewer.js"></script>
 </body>

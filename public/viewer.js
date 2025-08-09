@@ -15,7 +15,7 @@ let pc = null;
 let viewerId = null;
 let roomId = roomIdSearch || null;
 
-if(roomIdSearch){
+if (roomIdSearch) {
   inputRoomId.value = roomIdSearch;
   // setTimeout(() => {
   //   btnJoin.click();
@@ -92,7 +92,10 @@ async function initPeerConnection() {
 
   pc.onconnectionstatechange = () => {
     console.log('PC state', pc.connectionState);
-    if (pc.connectionState === 'connected') txtViewerStatus.innerText = 'Connected';
+    if (pc.connectionState === 'connected') {
+      txtViewerStatus.innerText = 'Connected';
+      btnJoin.disabled = true;
+    }
     if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') txtViewerStatus.innerText = 'Disconnected';
   };
 }
